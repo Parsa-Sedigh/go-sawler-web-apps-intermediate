@@ -31,9 +31,24 @@ Many go templates are comprised of the template itself, some partials that we wa
 governed by some base layer.
 
 ## 14-004 Displaying one page
+To enable syntax highlighting with .tmpl , go to view>appearance>show status bar then at bottom right, click on `Plain Text` and relate
+`Go Template` to this extension.
+
+`air`(check it on github) is an application that will automatically recompile(a temporary binary) and reload our app anytime we
+make a change to the source code.
+
+Now to run your app instead of `go run ./cmd/web`, just type `air` at root level.
+
 ## 15-005 A better extension for Go templates and VS Code
+Uninstall `go template support` extension and instead install `gotemplate-syntax`. You **could** change some settings to have good
+highlighting for `tmpl` files, but let's use `gohtml`. 
+
 ## 16-006 Creating the form
+We have to use `novalidate` on `<form>` if we're going to use bootstrap's validation.
+
 ## 17-007 Connecting our form to stripe
+
+
 ## 18-008 Client side validation
 ## 19-009 Getting the paymentIntent - setting up the back end package
 ## 20-010 Getting the paymentIntent - starting work on the back end api

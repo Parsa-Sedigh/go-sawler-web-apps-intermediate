@@ -45,9 +45,9 @@ func (app *application) renderTemplate(w http.ResponseWriter, r *http.Request, p
 	var t *template.Template
 	var err error
 
-	/* We want to be able to pass a name like "terminal" and not sth like "terminal.page.tmpl" . So we need to build the name that that
+	/* We want to be able to pass a name like "terminal" and not sth like "terminal.page.gohtml" . So we need to build the name that that
 	template will have:*/
-	templateToRender := fmt.Sprintf("templates/%s.page.tmpl", page)
+	templateToRender := fmt.Sprintf("templates/%s.page.gohtml", page)
 
 	// if templateInMap is true, we can use it but if templateInMap is false, we have to build it
 	_, templateInMap := app.templateCache[templateToRender]
@@ -86,14 +86,14 @@ func (app *application) parseTemplate(partials []string, page, templateToRender 
 	// build partials
 	if len(partials) > 0 {
 		for i, x := range partials {
-			partials[i] = fmt.Sprintf("templates/%s.partial.tmpl", x)
+			partials[i] = fmt.Sprintf("templates/%s.partial.gohtml", x)
 		}
 	}
 
 	if len(partials) > 0 {
-		t, err = template.New(fmt.Sprintf("%s.page.tmpl", page)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.tmpl", strings.Join(partials, ","), templateToRender)
+		t, err = template.New(fmt.Sprintf("%s.page.gohtml", page)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.gohtml", strings.Join(partials, ","), templateToRender)
 	} else {
-		t, err = template.New(fmt.Sprintf("%s.page.tmpl", page)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.tmpl", templateToRender)
+		t, err = template.New(fmt.Sprintf("%s.page.gohtml", page)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.gohtml", templateToRender)
 	}
 
 	if err != nil {
