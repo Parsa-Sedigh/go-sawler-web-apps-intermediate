@@ -7,7 +7,7 @@ import (
 )
 
 func (app *application) routes() http.Handler {
-	mux := chi.NewRouter
+	mux := chi.NewRouter()
 
 	mux.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},

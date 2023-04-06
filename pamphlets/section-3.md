@@ -71,8 +71,8 @@ Now our codebase has 2 main funcs. Because we're gonna build two binaries from t
 cmd/web folder, that's our frontend but when we compile what's in cmd/api that would be our backend.
 
 ## 21-011 Getting the paymentIntent - setting up a route and handler, and using make
-When working with frontend, we're gonna use air for frontend but for backend, we use Makefile using `make start_back` and it will run in background. You can hit
-enter to run commands on that terminal window. To stop it, run: `make stop_back`.
+When working with frontend, we're gonna use air for frontend but for backend, we use Makefile using `make start_back` and it will run in background.
+You can hit enter to run commands on that terminal window. To stop it, run: `make stop_back`.
 
 When working on frontend, we usually run the frontend with air and run the backend using make and when working on backend, we run the
 backend with air and run frontend with make.
@@ -91,7 +91,15 @@ sends back a `card_declined` which is: `4000 0000 0000 0002` and for success: `4
 the gross volume.
 
 ## 25-015 Generating a receipt
+You don't want to put payment intent in a final receipt, but we're doing it in `succeeded.page.gohtml` ! we're just passing data.
+
+We're gonna implement subscription where people buy a subscription and get charged once a month or once a week pr whatever interval you decide
+is the appropriate one(recurring payments).
+
 ## 26-016 Cleaning up the API url and Stripe Publishable Key on our form
+We don't want to hard code publishable key and api urls in our templates, when we go to different environments. For example we want our
+production publishable key and production api url. So we need pass data to the template when rendering it. We can do this in `addDefaultData`
+func.
 
 ---
 
