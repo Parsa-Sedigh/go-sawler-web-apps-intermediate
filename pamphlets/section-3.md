@@ -50,16 +50,50 @@ We have to use `novalidate` on `<form>` if we're going to use bootstrap's valida
 
 
 ## 18-008 Client side validation
+
 ## 19-009 Getting the paymentIntent - setting up the back end package
+Now we're gonna have 2 binaries running at the same time: one that handles displaying web pages to the user and one that we're gonna call from
+those web pages using JS(using APIs).
+
+We're gonna put all calls to stripe in internal/card/card.go .
+
+Errors always should be returned as last return value of a function: `(val1, val2, ..., error)`.
+
+CreatePaymentIntent is not a meaningful name, it's only meaningful when working with stripe, so let's create an alias for it named
+`charge`. So create a function named `charge`. Another reason is maybe later we wanted to use stripe and paypal and other banks. For this,
+we can use repository pattern and have charge, refund, partialRefund and ... funcs and these are meaningful names regardless of bank
+we're using.
+
 ## 20-010 Getting the paymentIntent - starting work on the back end api
+We want to start creating our backend API. Create api.go which is gonna be the main entry point for our api package.
+
+Now our codebase has 2 main funcs. Because we're gonna build two binaries from the same codebase and when we compile what's in
+cmd/web folder, that's our frontend but when we compile what's in cmd/api that would be our backend.
+
 ## 21-011 Getting the paymentIntent - setting up a route and handler, and using make
+When working with frontend, we're gonna use air for frontend but for backend, we use Makefile using `make start_back` and it will run in background. You can hit
+enter to run commands on that terminal window. To stop it, run: `make stop_back`.
+
+When working on frontend, we usually run the frontend with air and run the backend using make and when working on backend, we run the
+backend with air and run frontend with make.
+
 ## 22-012 Getting the paymentIntent - finishing up our handler
+
 ## 23-013 Updating the front end JavaScript to call our paymentIntent handler
+
 ## 24-014 Getting the payment intent, and completing the transaction
+The payment intent we'll be getting doesn't actually charge the credit card, it's the first instance of payment intent which will
+change it's status throughout the lifecycle of the transaction. So initially we're just making sure everything is valid and we have a 
+credit card that we can charge it and we get an id back(payment intent id). Then we want to try to charge a credit card.
+
+Go to stripe's test your integration page and there you'll see: `Testing for specific responses and errors` and use the credit card number that
+sends back a `card_declined` which is: `4000 0000 0000 0002` and for success: `4242 4242 4242 4242` and open the stripe's test terminal to check
+the gross volume.
+
 ## 25-015 Generating a receipt
 ## 26-016 Cleaning up the API url and Stripe Publishable Key on our form
 
-
+---
 
 014 Air
 https://github.com/cosmtrek/air
