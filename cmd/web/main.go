@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/driver"
+	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/models"
 	"html/template"
 	"log"
 	"net/http"
@@ -35,6 +37,7 @@ type application struct {
 	errorLog      *log.Logger
 	templateCache map[string]*template.Template
 	version       string
+	DB            models.DBModel
 }
 
 func (app *application) serve() error {
@@ -58,6 +61,7 @@ func main() {
 	// read this command line flag into cfg.port .
 	flag.IntVar(&cfg.port, "port", 4000, "Server port to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production}")
+	flag.StringVar(&cfg.db.dsn, "dsn", "parsa:parsa@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "DSN")
 	flag.StringVar(&cfg.api, "http://localhost:4001", "development", "URL to api")
 
 	flag.Parse()
@@ -69,6 +73,17 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	// connect to DB
+	conn, err := driver.OpenDB(cfg.db.dsn)
+	if err != nil {
+		// we don't wanna go any further if we can't have our connection to DB
+		errorLog.Fatal(err)
+	}
+
+	/* We don't wanna leave our resources open and also we want that connection pool to remain open until the application stops, so use
+	`defer`:*/
+	defer conn.Close()
+
 	tc := make(map[string]*template.Template)
 
 	app := &application{
@@ -77,10 +92,11 @@ func main() {
 		errorLog:      errorLog,
 		templateCache: tc,
 		version:       version,
+		DB:            models.DBModel{DB: conn},
 	}
 
 	// create a web server
-	err := app.serve()
+	err = app.serve()
 	if err != nil {
 		app.errorLog.Println(err)
 		log.Fatal(err)
