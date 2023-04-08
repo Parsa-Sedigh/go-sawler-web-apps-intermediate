@@ -98,9 +98,32 @@ soda migrate
 The `scehma_migration` table added by soda keeps track of our DB migrations.
 
 ## 39-013 Creating database models
+Create `migrations` folder at root level and copy the migration files in course resources. Also copy `database.yml` to root level.
 
+We need to add a column named image to widget table. For this, first, at root level you can run this command:
+```shell
+`soda generate fizz AddImageToWidgets`
+```
+The above command, `generate` is gonna create an up and down migration and with `fizz` it's gonna be in fizz format we wanna put them in and
+we call that migration `AddImageToWidgets`.
+This create 2 files.
+
+Now copy this to up file: `add_column("widgets", "image", "string", {})`
+
+
+Now for generated down migration: `drop_column("widgets", "image")`.
+
+Now run:
+```shell
+soda migrate
+```
+It will add the column to table.
+
+Add widget.png which is our static image for a test widget in image column of table.
 
 ## 40-014 Working on database functions
+
+
 ## 41-015 Inserting a new transaction
 ## 42-016 Inserting a new order
 ## 43-017 An aside_ fixing a problem with calculating the amount
