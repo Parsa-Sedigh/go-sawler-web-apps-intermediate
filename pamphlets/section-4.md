@@ -122,10 +122,16 @@ It will add the column to table.
 Add widget.png which is our static image for a test widget in image column of table.
 
 ## 40-014 Working on database functions
+When you have an id in go, go likes it to be both capital, so: ID.
 
+You can use backticks to put string in multiple lines like in sql statements.
 
 ## 41-015 Inserting a new transaction
+
 ## 42-016 Inserting a new order
+The transaction we save, will change it's status throughout the lifecycle of the actual full transaction where we're charging a
+credit card.
+
 ## 43-017 An aside_ fixing a problem with calculating the amount
 ## 44-018 Getting more information about a transaction
 ## 45-019 Customers
