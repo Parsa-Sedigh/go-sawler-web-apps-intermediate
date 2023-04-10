@@ -133,8 +133,26 @@ The transaction we save, will change it's status throughout the lifecycle of the
 credit card.
 
 ## 43-017 An aside_ fixing a problem with calculating the amount
+
 ## 44-018 Getting more information about a transaction
+Under no circumstances we will ever store a credit card number(we just store the last 4 digits), but it's useful to be able to verify
+that you're looking at the right transaction by saying: Do the last 4 digits match the ones I'm looking for and is the expiry date the same?
+and that's enough info to verify that you have the right transaction, but not enough for someone to actually charge that credit card when
+our DB ever gets compromised.
+
+PaymentIntent changes during it's lifecycle, when you get it initially, you have some bit of info, when you get it later on, you might
+have a different bit of info. So we need to get an **existing** paymentIntent, not create a new one, so for convenience, let's create
+a method on *Card, named `RetrievePaymentIntent`. So we used the word retrieve, because we're getting an **existing** one.
+
+After changes, stop the app and run it again:
+```shell
+make stop
+make start
+```
+
 ## 45-019 Customers
+
+
 ## 46-020 Getting started saving customer and transaction information
 ## 47-021 Create the save customer database method
 ## 48-022 Saving the customer, transaction, and order from the handler
