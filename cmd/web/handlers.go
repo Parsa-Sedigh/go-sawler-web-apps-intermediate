@@ -7,6 +7,14 @@ import (
 	"strconv"
 )
 
+// Home displays the home page
+func (app *application) Home(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "home", &templateData{}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+// VirtualTerminal displays the virtual terminal page
 func (app *application) VirtualTerminal(w http.ResponseWriter, r *http.Request) {
 	//stringMap := make(map[string]string)
 	//stringMap["publishable_key"] = app.config.stripe.key
@@ -64,6 +72,12 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 
 	data := make(map[string]interface{})
 
+	// create a new customer
+
+	// create a new order
+
+	// create a new transaction
+
 	/* we could do these on one line. All of these data are not shown to the end user, maybe they will be in hidden inputs, but those info
 	are also useful perhaps in a dispute or ... .*/
 	data["cardholder"] = cardHolder
@@ -76,6 +90,8 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 	data["expiry_month"] = expiryMonth
 	data["expiry_year"] = expiryYear
 	data["bank_return_code"] = pi.Charges.Data[0].ID
+
+	/* Should write this data to session and then redirect user to new page. */
 
 	if err := app.renderTemplate(w, r, "succeeded", &templateData{
 		Data: data,

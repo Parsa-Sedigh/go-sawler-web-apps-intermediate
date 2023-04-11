@@ -151,10 +151,51 @@ make start
 ```
 
 ## 45-019 Customers
+Right now, our handlers are doing nothing more than grabbing info from out transaction and from the form and displaying a receipt to the
+end user. But we also want to save the transaction and order info.
 
+Create a new table and add new columns to the transactions table using `soda`:
+```shell
+soda generate fizz CreateCustomerTable # will generate 2 migrations: up and down
+```
+
+Now for adding columns:
+```shell
+soda generate fizz AddColsToTransactions
+```
+
+Now run:
+```shell
+soda migrate
+```
+
+Now we need to change the types accordingly in models.go .
+
+After adding customerID in Order type of models.go , we need to reflect this change in DB as well, so we need a migration:
+```shell
+soda generate fizz AddCustomerIDToOrders
+```
+
+Now run:
+```shell
+soda migrate
+```
 
 ## 46-020 Getting started saving customer and transaction information
+Currently, if you're on /payment-succeeded page and reload that page, it's gonna ask you: are you sure you want to resubmit the form?
+And if you say yes, it will charge the user again(resubmit the form)!
+
+We don't want this to happen.
+
+To fix this, we need a session and we need to redirect. So before redirecting, we need to save some info.
+
+Install: `github.com/alexedwards/scs/v2`.
+
+A middleware, receives a http.Handler, modify it and return a http.Handler . 
+
 ## 47-021 Create the save customer database method
+
+
 ## 48-022 Saving the customer, transaction, and order from the handler
 ## 49-023 Running a test transaction
 ## 50-024 Fixing a database error, and saving more details
