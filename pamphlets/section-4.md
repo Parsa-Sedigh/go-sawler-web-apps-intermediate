@@ -249,5 +249,13 @@ but it won't POST the data again.
 Create `TransactionData` type and `GetTransactionData` func.
 
 ## 53-027 Revising our Virtual Terminal
+For amount, 10.00 is equal to 1000(both are 10 dollars - 1000 shows cents as well).
+
+If we put 33.45 , we get a long decimal that even multiplying it by 100 doesn/t make it an int and on backend we expect an int.
+To fix this, we use parseInt() for `charge_amount` onChange listener. So now we pass 3345 as 33.45 cents.
+
+In reality, if we had one application running our frontend and one application running our backend, if you wanted to be a purist,
+you wouldn't use POST reqs on the frontend at all. You'd handle everything using your backend API. But for monolith apps, the approach
+we used till here, will work fine.
 
 ## 54-028 Fixing a mistake in the formatCurrency template function
