@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/driver"
@@ -60,13 +61,16 @@ func (app *application) serve() error {
 }
 
 func main() {
+	//gob.Register(map[string]interface{}{})
+	gob.Register(TransactionData{})
+
 	var cfg config
 
 	// read this command line flag into cfg.port .
 	flag.IntVar(&cfg.port, "port", 4000, "Server port to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production}")
 	flag.StringVar(&cfg.db.dsn, "dsn", "parsa:parsa@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "DSN")
-	flag.StringVar(&cfg.api, "http://localhost:4001", "development", "URL to api")
+	flag.StringVar(&cfg.api, "api", "http://localhost:4001", "URL to api")
 
 	flag.Parse()
 
@@ -89,7 +93,7 @@ func main() {
 	defer conn.Close()
 
 	// set up session
-	session := scs.New()
+	session = scs.New()
 	session.Lifetime = 24 * time.Hour
 
 	tc := make(map[string]*template.Template)

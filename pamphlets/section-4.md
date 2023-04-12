@@ -187,7 +187,7 @@ And if you say yes, it will charge the user again(resubmit the form)!
 
 We don't want this to happen.
 
-To fix this, we need a session and we need to redirect. So before redirecting, we need to save some info.
+To fix this, we need a session and we need to redirect. But before redirecting, we need to save some info.
 
 Install: `github.com/alexedwards/scs/v2`.
 
@@ -195,11 +195,59 @@ A middleware, receives a http.Handler, modify it and return a http.Handler .
 
 ## 47-021 Create the save customer database method
 
-
 ## 48-022 Saving the customer, transaction, and order from the handler
+It's not good to get the customer name from cardholder name(maybe the customer is a 14 year old and using his mom's or dad's card, so the
+name is not accurate). So add `first_name` and `last_name` fields to form when buying. 
+
+It's good to use air when you're making changes to template files. But if you're not, use makefile commands.
+
+Why we didn't call the DB directly in `SaveCustomer`? Why we didn't put the logic of `SaveCustomer` right in the handler?
+
+We could have. But maybe we wanna do more in SaveCustomer function than inserting sth into the DB, maybe we wanna fire off an email
+or an alert. Maybe we want to create an audit log, save every single transaction and all of the details associated in the DB.
+The place for that is in `SaveCustomer`(in it's own function) and not at the DB level.
+
+After creating a customer, we need to create a transaction and then create an order, because we need the transactionID before we can
+save the order.
+
+So we don't call the DB directly in `PaymentSucceeded`.
+
 ## 49-023 Running a test transaction
+
 ## 50-024 Fixing a database error, and saving more details
+We need to store payment_intent and payment_method if we're gonna do a refund of transaction at some point. To update the tables, run:
+```shell
+soda generate fizz AddColsToTxn
+```
+And populate the generated files with appropriate logic and run:
+```shell
+soda migrate
+```
+
+Then add the new columns(changes to table structure) to models in models.go .
+
 ## 51-025 Redirecting after post
+After someone's credit-card is charged, they'll go to a receipt page called `/payment-succeeded` but that page is actually a direct result of
+a POST req(so if we refresh that page, it's gonna make POST reqs! which is not good) and **it's good practice to redirect people
+somewhere else so they can't accidentally POST that data twice or multiple times**. So in `PaymentSucceeded` handler, we write data to
+session and then redirect user to a new page.
+
+Unless you're putting a primitive like a string or an int in the session, you need to register it's type. If you're coming from a language
+that is not strongly typed, it may be confusing to you. For this, we're gonna use `gob` in main.go .
+
+With this:
+```go
+gob.Register(map[string]interface{}{})
+```
+now, when we run the program, that type type will be registered and we can put the type `map[string]interface{}` into the session in our
+code.
+
+Now if someone tries to reload that page, since we removed info from the session, we'll get an error(you can do error checking),
+but it won't POST the data again.
+
 ## 52-026 Simplifying our PaymentSucceeded handler
+Create `TransactionData` type and `GetTransactionData` func.
+
 ## 53-027 Revising our Virtual Terminal
+
 ## 54-028 Fixing a mistake in the formatCurrency template function

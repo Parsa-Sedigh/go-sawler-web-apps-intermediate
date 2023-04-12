@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/cards"
+	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/models"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // Home displays the home page
@@ -29,22 +32,40 @@ func (app *application) VirtualTerminal(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request) {
+type TransactionData struct {
+	FirstName       string
+	LastName        string
+	Email           string
+	PaymentIntentID string
+	PaymentMethodID string
+	PaymentAmount   int
+	PaymentCurrency string
+	LastFour        string
+	ExpiryMonth     int
+	ExpiryYear      int
+	BankReturnCode  string
+}
+
+// GetTransactionData gets txn data from POST and stripe
+func (app *application) GetTransactionData(r *http.Request) (TransactionData, error) {
+	var txnData TransactionData
+
 	err := r.ParseForm()
 	if err != nil {
 		app.errorLog.Println(err)
-
-		// this isn't very polite(we should send back a proper err response, but it's sufficient for our purposes right now)
-		return
+		return txnData, err
 	}
 
 	// read POSTed data
-	cardHolder := r.Form.Get("cardholder_name")
+	firstName := r.Form.Get("first_name")
+	lastName := r.Form.Get("last_name")
+	//cardHolder := r.Form.Get("cardholder_name")
 	email := r.Form.Get("email")
 	paymentIntent := r.Form.Get("payment_intent")
 	paymentMethod := r.Form.Get("payment_method")
 	paymentAmount := r.Form.Get("payment_amount")
 	paymentCurrency := r.Form.Get("payment_currency")
+	amount, _ := strconv.Atoi(paymentAmount)
 
 	card := cards.Card{
 		Secret: app.config.stripe.secret,
@@ -57,48 +78,174 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 		app.errorLog.Println(err)
 
 		// this is not good, but sufficient for now
-		return
+		return txnData, err
 	}
 
 	pm, err := card.GetPaymentMethod(paymentMethod)
 	if err != nil {
 		app.errorLog.Println(err)
-		return
+		return txnData, err
 	}
 
 	lastFour := pm.Card.Last4
 	expiryMonth := pm.Card.ExpMonth
 	expiryYear := pm.Card.ExpYear
 
-	data := make(map[string]interface{})
+	txnData = TransactionData{
+		FirstName:       firstName,
+		LastName:        lastName,
+		Email:           email,
+		PaymentIntentID: paymentIntent,
+		PaymentMethodID: paymentMethod,
+		PaymentAmount:   amount,
+		PaymentCurrency: paymentCurrency,
+		LastFour:        lastFour,
+		ExpiryMonth:     int(expiryMonth),
+		ExpiryYear:      int(expiryYear),
+		BankReturnCode:  pi.Charges.Data[0].ID,
+	}
+
+	return txnData, nil
+}
+
+func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.errorLog.Println(err)
+
+		// this isn't very polite(we should send back a proper err response, but it's sufficient for our purposes right now)
+		return
+	}
+
+	widgetID, _ := strconv.Atoi(r.Form.Get("product_id")) // you shouldn't ignore this error!
+	txnData, err := app.GetTransactionData(r)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	//data := make(map[string]interface{})
 
 	// create a new customer
-
-	// create a new order
+	customerID, err := app.SaveCustomer(txnData.FirstName, txnData.LastName, txnData.Email)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
 
 	// create a new transaction
+	//amount, _ := strconv.Atoi(paymentAmount)
+	txn := models.Transaction{
+		Amount:      txnData.PaymentAmount,
+		Currency:    txnData.PaymentCurrency,
+		LastFour:    txnData.LastFour,
+		ExpiryMonth: txnData.ExpiryMonth,
+		ExpiryYear:  txnData.ExpiryYear,
+		//BankReturnCode:      pi.Charges.Data[0].ID,
+		BankReturnCode:      txnData.BankReturnCode,
+		PaymentIntent:       txnData.PaymentIntentID,
+		PaymentMethod:       txnData.PaymentMethodID,
+		TransactionStatusID: 2, // cleared statusID
+	}
+
+	// txnID is the newly inserted transaction id in DB
+	txnID, err := app.SaveTransaction(txn)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	// create a new order
+	order := models.Order{
+		WidgetID:      widgetID,
+		TransactionID: txnID,
+		CustomerID:    customerID,
+		StatusID:      1,
+		Quantiy:       1, // for now, we only allow people to buy one thing at a time, so we hardcoded this number
+		Amount:        txnData.PaymentAmount,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+	_, err = app.SaveOrder(order)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
 
 	/* we could do these on one line. All of these data are not shown to the end user, maybe they will be in hidden inputs, but those info
 	are also useful perhaps in a dispute or ... .*/
-	data["cardholder"] = cardHolder
-	data["email"] = email
-	data["pi"] = paymentIntent
-	data["pm"] = paymentMethod
-	data["pa"] = paymentAmount
-	data["pc"] = paymentCurrency
-	data["last_four"] = lastFour
-	data["expiry_month"] = expiryMonth
-	data["expiry_year"] = expiryYear
-	data["bank_return_code"] = pi.Charges.Data[0].ID
+	//data["cardholder"] = cardHolder
+	//data["email"] = email
+	//data["pi"] = paymentIntent
+	//data["pm"] = paymentMethod
+	//data["pa"] = paymentAmount
+	//data["pc"] = paymentCurrency
+	//data["last_four"] = lastFour
+	//data["expiry_month"] = expiryMonth
+	//data["expiry_year"] = expiryYear
+	//data["bank_return_code"] = pi.Charges.Data[0].ID
+	//data["first_name"] = firstName
+	//data["last_name"] = lastName
 
-	/* Should write this data to session and then redirect user to new page. */
+	/* Write this data to session and then redirect user to new page. */
+	//app.Session.Put(r.Context(), "receipt", data)
+	fmt.Println("hello: ", txnData)
+	app.Session.Put(r.Context(), "receipt", txnData)
 
-	if err := app.renderTemplate(w, r, "succeeded", &templateData{
+	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
+}
+
+func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
+	//data := app.Session.Get(r.Context(), "receipt").(map[string]interface{})
+	txn := app.Session.Get(r.Context(), "receipt").(TransactionData)
+	data := make(map[string]interface{})
+	data["txn"] = txn
+
+	// do not keep it in session
+	app.Session.Remove(r.Context(), "receipt")
+
+	if err := app.renderTemplate(w, r, "receipt", &templateData{
 		Data: data,
 	}); err != nil {
 		// in prod, do sth else
 		app.errorLog.Println(err)
 	}
+}
+
+// SaveCustomer saves a customer and returns id
+func (app *application) SaveCustomer(firstName, lastName, email string) (int, error) {
+	customer := models.Customer{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+	}
+
+	id, err := app.DB.InsertCustomer(customer)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+// SaveTransaction saves a transaction and returns id
+func (app *application) SaveTransaction(txn models.Transaction) (int, error) {
+	id, err := app.DB.InsertTransaction(txn)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+// SaveOrder saves a order and returns id
+func (app *application) SaveOrder(order models.Order) (int, error) {
+	id, err := app.DB.InsertOrder(order)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 // ChargeOnce displays the page to buy one widget
