@@ -4,39 +4,6 @@
         let card;
         const stripe = Stripe({{.StripePublishableKey}});
 
-        (function () {
-            // create stripe and it's elements
-            const elements = stripe.elements();
-            const style = {
-                base: {
-                    fontSize: '16px',
-                    lineHeight: '24px'
-                }
-            };
-
-            // create card entry
-            card = elements.create('card', {
-                style,
-
-                // in production, you always want to have postal code check, but in development it's find to turn it off
-                hidePostalCode: true
-            });
-
-            card.mount('#card-element');
-
-            // check for input errors
-            card.addEventListener('change', function (event) {
-                const displayError = document.getElementById('card-errors');
-                if (event.error) {
-                    displayError.classList.remove('d-none');
-                    displayError.textContent = event.error.message;
-                } else {
-                    displayError.classList.add('d-none'); // hide the error(if there is one or not doesn't matter, we hide it anyway)
-                    displayError.textContent = '';
-                }
-            });
-        })();
-
         const cardMessages = document.getElementById('card-messages');
         const payButton = document.getElementById('pay-button');
         const processing = document.getElementById('processing-payment');
@@ -139,5 +106,39 @@
                     }
                 });
         }
+
+        // initializes and displays credit card field:
+        (function () {
+            // create stripe and it's elements
+            const elements = stripe.elements();
+            const style = {
+                base: {
+                    fontSize: '16px',
+                    lineHeight: '24px'
+                }
+            };
+
+            // create card entry
+            card = elements.create('card', {
+                style,
+
+                // in production, you always want to have postal code check, but in development it's find to turn it off
+                hidePostalCode: true
+            });
+
+            card.mount('#card-element');
+
+            // check for input errors
+            card.addEventListener('change', function (event) {
+                const displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.classList.remove('d-none');
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.classList.add('d-none'); // hide the error(if there is one or not doesn't matter, we hide it anyway)
+                    displayError.textContent = '';
+                }
+            });
+        })();
     </script>
 {{end}}
