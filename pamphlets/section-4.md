@@ -258,4 +258,6 @@ In reality, if we had one application running our frontend and one application r
 you wouldn't use POST reqs on the frontend at all. You'd handle everything using your backend API. But for monolith apps, the approach
 we used till here, will work fine.
 
+We need to protect /virtual-terminal page so not everybody can charge a credit card!
+
 ## 54-028 Fixing a mistake in the formatCurrency template function
