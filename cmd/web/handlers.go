@@ -335,3 +335,14 @@ func (app *application) BronzePlanReceipt(w http.ResponseWriter, r *http.Request
 		app.errorLog.Println(err)
 	}
 }
+
+func (app *application) LoginPage(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "login", &templateData{
+		API: "http://localhost:4001",
+		Data: map[string]interface{}{
+			"API": "http://localhost:4001",
+		},
+	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
