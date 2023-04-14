@@ -27,7 +27,9 @@ We're gonna use stateful tokens.
 In readJSON, since we receive the data arg as a reference to a variable, we're just changing a pointer value.
 
 ## 71-005 Create a writeJSON helper function
+
 ## 72-006 Starting the authentication process
+
 ## 73-007 Creating an invalidCredentials helper function
 ## 74-008 Creating a passwordMatches helper function
 ## 75-009 Making sure that everything works

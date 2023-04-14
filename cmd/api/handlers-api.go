@@ -260,6 +260,18 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// 1- get the user from the database by email; send error if invalid email
+	user, err := app.DB.GetUserByEmail(userInput.Email)
+	if err != nil {
+
+	}
+
+	// 2- validate the password; send error if invalid password
+
+	// 3- generate the token
+
+	// 4- send response
+
 	var payload struct {
 		Error   bool   `json:"error"`
 		Message string `json:"message"`
@@ -268,8 +280,5 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	payload.Error = false
 	payload.Message = "Success"
 
-	out, _ := json.MarshalIndent(payload, "", "\t")
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(out)
+	_ = app.writeJSON(w, http.StatusOK, payload)
 }
