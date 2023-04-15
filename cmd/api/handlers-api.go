@@ -270,6 +270,18 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// 2- validate the password; send error if invalid password
+	validPassword, err := app.passwordMatches(user.Password, user.Password)
+	if err != nil {
+		app.invalidCredentials(w)
+		return
+	}
+
+	/* if we got into this if, it means user entered the correct email address but with the wrong password, but we shouldn't say this to him because
+	of security reasons, we just say invalid credentials.*/
+	if !validPassword {
+		app.invalidCredentials(w)
+		return
+	}
 
 	// 3- generate the token
 

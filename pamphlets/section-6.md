@@ -33,6 +33,8 @@ In readJSON, since we receive the data arg as a reference to a variable, we're j
 ## 73-007 Creating an invalidCredentials helper function
 
 ## 74-008 Creating a passwordMatches helper function
+Vscode has difficulty importing bcrypt package. To import it, you can go to go.mod and hover over `module <module name>` and use quick fix.
+
 ## 75-009 Making sure that everything works
 ## 76-010 Create a function to generate a token
 ## 77-011 Generating and sending back a token
