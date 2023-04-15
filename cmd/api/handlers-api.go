@@ -263,7 +263,10 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	// 1- get the user from the database by email; send error if invalid email
 	user, err := app.DB.GetUserByEmail(userInput.Email)
 	if err != nil {
+		app.invalidCredentials(w)
 
+		// we don't want to go any further, so return
+		return
 	}
 
 	// 2- validate the password; send error if invalid password
