@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/cards"
 	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/models"
 	"github.com/go-chi/chi/v5"
@@ -270,7 +271,7 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// 2- validate the password; send error if invalid password
-	validPassword, err := app.passwordMatches(user.Password, user.Password)
+	validPassword, err := app.passwordMatches(user.Password, userInput.Password)
 	if err != nil {
 		app.invalidCredentials(w)
 		return
@@ -284,16 +285,31 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// 3- generate the token
+	token, err := models.GenerateToken(user.ID, 24*time.Hour, models.ScopeAuthentication)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
 
-	// 4- send response
+	// 4- save to database
+	err = app.DB.InsertToken(token, user)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
 
+	// 5- send response
+	/* Note: In this scenario, in a lot of cases, the only thing you want to send back is the token. But we want to send back the token and
+	whether or not there's been an error and the message.*/
 	var payload struct {
-		Error   bool   `json:"error"`
-		Message string `json:"message"`
+		Error   bool          `json:"error"`
+		Message string        `json:"message"`
+		Token   *models.Token `json:"authentication_token"`
 	}
 
 	payload.Error = false
-	payload.Message = "Success"
+	payload.Message = fmt.Sprintf("token for %s created", userInput.Email)
+	payload.Token = token
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }

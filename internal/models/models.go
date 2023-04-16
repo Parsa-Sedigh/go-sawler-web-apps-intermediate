@@ -244,7 +244,7 @@ func (m *DBModel) GetUserByEmail(email string) (User, error) {
 	email = strings.ToLower(email)
 	var u User
 
-	row, _ := m.DB.QueryContext(ctx, `
+	row := m.DB.QueryRowContext(ctx, `
 		SELECT id, first_name, last_name, email, password, created_at, updated_at
 		FROM users
 		WHERE email = ?`, email)

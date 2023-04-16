@@ -36,9 +36,31 @@ In readJSON, since we receive the data arg as a reference to a variable, we're j
 Vscode has difficulty importing bcrypt package. To import it, you can go to go.mod and hover over `module <module name>` and use quick fix.
 
 ## 75-009 Making sure that everything works
+The user we had from the beginning in users table, his password is `password`.
+
+Note: The email address is case-insensitive(so if user enters all uppercase, we will convert it to lowercase).
+
 ## 76-010 Create a function to generate a token
+Create `tokens.go` and put it in `models` folder because we might at some point in the future, need to have access to the functionality in this new file
+from another application.
+
+We declared `ScopeAuthentication` because when you're working with an API, you'll have different kinds of scope and it's generally considered 
+good practice to identify the scope for some particular piece of your code.
+
 ## 77-011 Generating and sending back a token
+When we generate the token, we need to save it in the DB(so we need migrations and also changes to models).
+
 ## 78-012 Saving the token to the database
+```shell
+soda generate fizz CreateTokensTable
+```
+
+In `create_tokens_table` migrations we know `hash` is a reserved word in sql, so we named that column `token_hash`.
+
+```shell
+soda migrate
+```
+
 ## 79-013 Saving the token to local storage
 ## 80-014 Changing the login link based on authentication status
 ## 81-015 Checking authentication on the back end
