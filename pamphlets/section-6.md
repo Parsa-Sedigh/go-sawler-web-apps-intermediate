@@ -62,17 +62,97 @@ soda migrate
 ```
 
 ## 79-013 Saving the token to local storage
+We don't want to keep the old tokens. So once someone logs in, we need to get rid of any preexisting tokens for that user id.
+
 ## 80-014 Changing the login link based on authentication status
+
 ## 81-015 Checking authentication on the back end
+Currently, a logged out user can type a page that we want only logged in users to see, and see that page!
+
+There are a couple ways of doing this:
+
+If we were to do everything completely divorced from the frontend, in other words, all of our authentication is handled by our API server, we can do
+that byt it's kinda awkward because we have a couple of options:
+
+- One is to make the URLs that appear in our menu items and a logged out user shouldn't see some of them, make those 
+not-standard hrefs(`<a>`), so instead make them call some JS function which first goes and verifies against the backend that you're authenticated and if
+it is, then it redirects you to that intended page. This is one option. But it gets awkward fast.
+- Allow authentication to the backend like we have right now, but also when we authenticate, to also authenticate through the frontend and store
+some session variable which we can check on every req to see if the user is authenticated or not. If this was a SPA, this wouldn't be an issue,
+because with SPA we only have one page and we could do all of our authentications through backend without any difficultly.
+
+We'll do both ways.
+
+**First way:**
+
+By calling `checkAuth` function in every page, if the user is not logged in, we see the page for a brief second and that's why this kind of
+authentication check using only the backend is not ideal for apps that are not SPAs.
+
+Note: The next lines are from vid #20
+
+If you want to use this approach, move `checkAuth` function definition to `<header>` of html in base.layout.gohtml and in pages that are calling this
+function, in a new `block`(`in-head`) that would be where the comment I written in base.layout for `check auth function`, exists.
+
+**Reason:** The way the browsers work is that as a page is being rendered, as soon as it finds that `<script>` tag in `<head>`, everything comes
+to halt, it executes that JS and then it moves on(that's the way browsers work right now at least).
+So if we put checkAuth() in <head>, the user is not gonna see that page until that JS is executed and if the auth fails(like if the token user sent
+either doesn't exist or is expired or is invalid), he gets redirected to /login before seeing anything. This is checking for auth in frontend(for a
+server-side rendered app which is not great as you can see).
+
+Another form of checking authentication that is handled server-side with sessions.
+
 ## 82-016 A bit of housekeeping
+
 ## 83-017 Creating stub functions to validate a token
+
 ## 84-018 Extracting the token from the authorization header
+Although we're specifying some error messages in `authenticateToken`, we're actually not gonna use them! It's better to give as little info as
+possible to users who are trying to authenticate when sth goes wrong. We don't want to give any indication as to what is missing.
+
+So in authentication, make the error messages as bare minimum.
+
 ## 85-019 Validating the token on the back end
+Our token is a string of 26 characters long.
+
+Q: Why we didn't just store the token in DB? Why we stored a hash of it?
+
+Because we never want to store a valid token in DB. If that ever gets compromised, the hacker has access to **all** the users(since all the tokens
+are just there! he can do whatever he wants).
+
+**Just as you never store a password in the DB as plain text, you never store a token in DB, we store a hash of these.**
+
+To convert a slice to an array, write: a[:] . Here a is a slice.
+
 ## 86-020 Testing out our token validation
+
 ## 87-021 Challenge_ Checking for expiry
+
 ## 88-022 Solution to challenge
-## 89-023 Implementing middleware to protect specfic routes
+```shell
+soda generate fizz AddExpiryToTokens
+```
+After changes(adding the column), run:
+```shell
+soda migrate
+```
+
+Now delete the entries in tokens table because their expiry is 0000 , so that we can get new tokens with the correct expiry.
+
+After getting a new token, to test the expiry, in DB change the expiry to some time in past so that we can test the logic for expiry.
+
+## 89-023 Implementing middleware to protect specific routes
+We wanna write a middleware to protect access to certain routes on the backend.
+
+`mux.Route()` allows us to create a new mux and apply middleware to it and to group certain kinds of routes logically into one location.
+Now any calls to middlewares in the closure we pass as second arg of `mux.Route()`, will **only** apply to the routes that are included in
+the routes defined in that group.
+
 ## 90-024 Trying out a protected route
-## 90-025 Converting the Virtual Terminal post to use the back end
-## 90-026 Changing the virtual terminal page to use fetch
-## 90-027 Verifying the saved transaction
+
+## 91-025 Converting the Virtual Terminal post to use the back end
+We want to convert the form submission style of sending req in /virtual-terminal(which sends the form submission data to our frontend go app) to
+instead an api call to a protected route on our backend go app. So in the backend handler(`VirtualTerminalPaymentSucceeded`) we're not
+gonna handle a form post, since data is sent as JSON as the body of POST req.
+
+## 92-026 Changing the virtual terminal page to use fetch
+## 93-027 Verifying the saved transaction

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/cards"
 	"github.com/Parsa-Sedigh/go-sawler-web-apps-intermediate/internal/models"
@@ -9,6 +10,7 @@ import (
 	"github.com/stripe/stripe-go/v72"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -312,4 +314,115 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	payload.Token = token
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
+}
+
+func (app *application) authenticateToken(r *http.Request) (*models.User, error) {
+	authorizationHeader := r.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		return nil, errors.New("no authorization header received")
+	}
+
+	// one space occurs between Bearer and the token itself
+	headerParts := strings.Split(authorizationHeader, " ")
+	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+		return nil, errors.New("no authorization header received")
+	}
+
+	token := headerParts[1]
+	if len(token) != 26 {
+		return nil, errors.New("authentication token wrong size")
+	}
+
+	// get the user from the tokens table
+	user, err := app.DB.GetUserForToken(token)
+	if err != nil {
+		return nil, errors.New("no matching user found")
+	}
+
+	return user, nil
+}
+
+func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
+	// 1- validate the token and get associated user
+	user, err := app.authenticateToken(r)
+	if err != nil {
+		app.invalidCredentials(w)
+		return
+	}
+
+	// if we got here, token is valid
+	var payload struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+	payload.Error = false
+	payload.Message = fmt.Sprintf("authenticated %s", user.Email)
+
+	app.writeJSON(w, http.StatusOK, payload)
+}
+
+func (app *application) VirtualTerminalPaymentSucceeded(w http.ResponseWriter, r *http.Request) {
+	/* Some of these fields will be POSTed and some of it won't and we'll be populating this transaction data(txnData) later on to send it back as
+	response from this handler.*/
+	var txnData struct {
+		PaymentAmount   int    `json:"amount"`
+		PaymentCurrency string `json:"currency"`
+		FirstName       string `json:"first_name"`
+		LastName        string `json:"last_name"`
+		Email           string `json:"email"`
+
+		// id of payment intent
+		PaymentIntent  string `json:"payment_intent"`
+		PaymentMethod  string `json:"payment_method"`
+		BankReturnCode string `json:"bank_return_code"`
+		ExpiryMonth    int    `json:"expiry_month"`
+		ExpiryYear     int    `json:"expiry_year"`
+		LastFour       string `json:"last_four"`
+	}
+
+	err := app.readJSON(w, r, &txnData)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	card := cards.Card{
+		Secret: app.config.stripe.secret,
+		Key:    app.config.stripe.key,
+	}
+
+	pi, err := card.RetrievePaymentIntent(txnData.PaymentIntent)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	pm, err := card.GetPaymentMethod(txnData.PaymentMethod)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	// populate the fields that were not populated in our txnData variable:
+	txnData.LastFour = pm.Card.Last4
+	txnData.ExpiryMonth = int(pm.Card.ExpMonth)
+	txnData.ExpiryYear = int(pm.Card.ExpYear)
+
+	txn := models.Transaction{
+		Amount:              txnData.PaymentAmount,
+		Currency:            txnData.PaymentCurrency,
+		LastFour:            txnData.LastFour,
+		ExpiryMonth:         txnData.ExpiryMonth,
+		ExpiryYear:          txnData.ExpiryYear,
+		BankReturnCode:      pi.Charges.Data[0].ID,
+		TransactionStatusID: 2, // 2 means cleared
+	}
+
+	_, err = app.SaveTransaction(txn)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, txn)
 }

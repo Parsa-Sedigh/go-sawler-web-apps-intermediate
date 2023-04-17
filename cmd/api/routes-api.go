@@ -22,6 +22,13 @@ func (app *application) routes() http.Handler {
 	mux.Post("/api/create-customer-and-subscribe-to-plan", app.CreateCustomerAndSubscribeToPlan)
 
 	mux.Post("/api/authenticate", app.CreateAuthToken)
+	mux.Post("/api/is-authenticated", app.CheckAuthentication)
+
+	mux.Route("/api/admin", func(mux chi.Router) {
+		mux.Use(app.Auth)
+
+		mux.Post("/virtual-terminal-succeeded", app.VirtualTerminalPaymentSucceeded)
+	})
 
 	return mux
 }
