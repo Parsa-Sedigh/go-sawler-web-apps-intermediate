@@ -155,4 +155,15 @@ instead an api call to a protected route on our backend go app. So in the backen
 gonna handle a form post, since data is sent as JSON as the body of POST req.
 
 ## 92-026 Changing the virtual terminal page to use fetch
+We want the virtual-terminal form to instead of calling a route on frontend go app, we want to use fetch and call a route on the backend.
+
+To do this, get rid of `action` attr on `<form>` and remove `stripe-js` block in that page. Because we won't be calling stripe on frontend anymore since
+that will be done on backend.
+
+In this approach, we don't need to submit the form and set the hidden fields in the <form>(by getting the element and setting it's 
+`value` property), instead, we just set the values of those hidden fields in JSON payload of ajax req.
+
 ## 93-027 Verifying the saved transaction
+Currently the payment_intent and payment_method columns in transactions table are stored empty when we submit the virtual terminal page req(charging
+a credit card). Those columns should be empty when we subscribe to a plan but not when we're charging a credit card. The problem is we're not
+populating those fields in `VirtualTerminalPaymentSucceeded` handler.

@@ -27,7 +27,12 @@ func (app *application) VirtualTerminal(w http.ResponseWriter, r *http.Request) 
 	//}, "stripe-js"); err != nil {
 	//	app.errorLog.Println(err)
 	//}
-	if err := app.renderTemplate(w, r, "terminal", &templateData{}, "stripe-js"); err != nil {
+
+	// note: stripe-js partial is needed on frontend, so we need that partial to be rendered
+	//if err := app.renderTemplate(w, r, "terminal", &templateData{}, "stripe-js"); err != nil {
+	//	app.errorLog.Println(err)
+	//}
+	if err := app.renderTemplate(w, r, "terminal", &templateData{}); err != nil {
 		app.errorLog.Println(err)
 	}
 }
