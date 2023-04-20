@@ -55,15 +55,54 @@ overrided through command line).
 
 With `VerifyToken`, we verify the link people clicks on, hasn't been changed in any way.
 
-
-
 ## 103-006 Implementing signed links for our email message
 
 ## 104-007 Using our urlsigner package
 
 ## 105-008 Creating the reset password route and handler
+Acronyms in go are all capitalized.
+
+If user changes the signed url(email or hash query params), it becomes invalid.
+
+We have tamper proof URLs and the great thing about this is that at no point, up to sending the reset password email, we have done no DB lookups
+other than to verify the email is valid when we received the reset-password form req. Everything else was handled by cryptography.
+
 ## 106-009 Setting up the reset password page
+To test things:
+```shell
+make stop
+make start_back
+air
+```
+
 ## 107-010 Creating a back end route to handle password resets
+
 ## 108-011 Setting an expiry for password reset emails
+When you send a password reset email, we need a expiry.
+
+Also one other security issue we currently have is when we're sending the payload of /reset-password req, we're sending email field. Now a malicious user
+who examines the source code, can change the email in that payload and therefore he can change somebody else's password.
+
+There are many ways of fixing this. One approach is sticking it in a session. Because the session for our frontend exists only for our frontend and
+we have no access to it from backend. We can encrypt that email to a text value when we write it to that `reset-password.page` and on backend we decrypt it. 
+
 ## 109-012 Adding an encryption package
+User can change the source code of payload for reset-password to some other email.
+
+Create a new package so it's available to both frontend and backend apps, named encryption.
+
+The encryption algorithms we're using, require a very specific length for the secret key. It needs to be exactly 32 characters longs.
+
+Note: By changing the secret key, if you have existing links for resetting password, they don't work anymore the next time you run the app aftere changin the
+secret key.
+
+By defining and initializing the `Encryption` type, that's how we initiate the `Encryption` package.
+
+Now we must encode the email on frontend and since we have the same secret key on backend, we should be able to decode it as well.
+
 ## 110-013 Using our encryption package to lock down password resets
+By sending an encrypted version of email, nobody will be able to guess the correct encryption algorithm if they wanna change the emails.
+
+Now the user can't see the email in the payload in the source code of website, because it's encrypted.
+
+You can also store encrypted values in DB for sensitive information, using the encryption package.
