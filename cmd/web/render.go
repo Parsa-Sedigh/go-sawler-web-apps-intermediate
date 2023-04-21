@@ -41,10 +41,17 @@ func formatCurrency(n int) string {
 var templateFS embed.FS
 
 func (app *application) addDefaultData(td *templateData, r *http.Request) *templateData {
-	fmt.Println("hello: ", app.config.api)
 	td.API = app.config.api
 	td.StripeSecretKey = app.config.stripe.secret
 	td.StripePublishableKey = app.config.stripe.key
+
+	/* If there is no userID in session, the IsAuthenticated field is gonna be 0 by default. But we wanted to be really sure and set
+	IsAuthenticated field to 0 OURSELVES, so we write an else block here as well.*/
+	if app.Session.Exists(r.Context(), "userID") {
+		td.IsAuthenticated = 1
+	} else {
+		td.IsAuthenticated = 0
+	}
 
 	return td
 }
@@ -70,7 +77,8 @@ func (app *application) renderTemplate(w http.ResponseWriter, r *http.Request, p
 
 	/* When we're in development, we never want to use the template cache. We don't want to be always stopping and starting our
 	application every time we make a change to the template files, instead we want it to happen automatically.  */
-	if app.config.env == "production" && templateInMap {
+	//if app.config.env == "production" && templateInMap {
+	if templateInMap {
 		t = app.templateCache[templateToRender]
 	} else { // if we're not in production or it doesn't exist in that map, we need to build it
 		t, err = app.parseTemplate(partials, page, templateToRender)
