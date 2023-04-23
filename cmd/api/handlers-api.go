@@ -571,3 +571,46 @@ func (app *application) GetSale(w http.ResponseWriter, r *http.Request) {
 
 	app.writeJSON(w, http.StatusOK, order)
 }
+
+func (app *application) RefundCharge(w http.ResponseWriter, r *http.Request) {
+	var chargeToRefund struct {
+		// id of order we want to refund
+		ID            int    `json:"id"`
+		PaymentIntent string `json:"pi"`
+
+		/* Amount is optional. If you don't specify the amount we need to refund, then the full amount of the underlying charge will be
+		refunded. If you want to do partial refund, you need to include the amount field.*/
+		Amount int `json:"amount"`
+
+		// At some point we want to support multiple currencies. So we can put it here.
+		Currency string `json:"currency"`
+	}
+	err := app.readJSON(w, r, &chargeToRefund)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	/* TODO: validate the amount user sent against underlying order by querying DB(the amount user sent should be less than or equal the
+	underlying order's amount). */
+
+	card := cards.Card{
+		Secret:   app.config.stripe.secret,
+		Key:      app.config.stripe.key,
+		Currency: chargeToRefund.Currency,
+	}
+	err = card.Refund(chargeToRefund.PaymentIntent, chargeToRefund.Amount)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	var resp struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+	resp.Error = false
+	resp.Message = "Charge refunded"
+
+	app.writeJSON(w, http.StatusOK, resp)
+}
