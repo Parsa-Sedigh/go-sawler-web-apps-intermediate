@@ -176,6 +176,10 @@ func (app *application) CreateCustomerAndSubscribeToPlan(w http.ResponseWriter, 
 			ExpiryMonth:         data.ExpiryMonth,
 			ExpiryYear:          data.ExpiryYear,
 			TransactionStatusID: 2,
+
+			// TODO: yeah we should rename payment_intent to subscription_id in database and the related go model struct
+			PaymentIntent: subscription.ID,
+			PaymentMethod: data.PaymentMethod,
 		}
 
 		txnID, err := app.SaveTransaction(txn)
