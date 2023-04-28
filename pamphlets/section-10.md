@@ -25,6 +25,7 @@ the payload data for `/refund` in `sale.page.gohtml`.
 ## 130-006 Adding UI components to the sales page
 
 ## 131-007 Updating status to refunded in the database
+We cancel subscriptions differently than we refund individual orders.
 
 ---
 
