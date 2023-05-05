@@ -1,0 +1,70 @@
+{{template "base" .}}
+
+{{define "title"}}
+    All Users
+{{end}}
+
+{{define "content"}}
+    <h2 class="mt-5">All Admin Users</h2>
+    <hr>
+    <div class="float-end">
+        <!-- userID 0 means we're gonna be adding a user -->
+        <a class="btn btn-outline-secondary" href="/admin/all-users/0">Add User</a>
+    </div>
+    <div class="clearfix"></div>
+
+        <table id="user-table" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            </tbody>
+        </table>
+{{end}}
+
+{{define "js"}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tbody = document.getElementById('user-table').getElementsByTagName('tbody')[0];
+            const token = localStorage.getItem('token');
+
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            };
+
+            fetch('{{.API}}/api/admin/all-users', requestOptions)
+                .then(response => response.json())
+                .then(function (data) {
+                    if (data) {
+                        data.forEach(function (i) {
+                            const newRow = tbody.insertRow();
+                            let newCell = newRow.insertCell();
+                            newCell.innerHTML = `<a href="/admin/all-users/${i.id}">${i.last_name}, ${i.first_name}</a>`;
+
+                            newCell = newRow.insertCell();
+                            const item = document.createTextNode(i.email);
+                            newCell.appendChild(item);
+                        });
+                    } else {
+                        /* This else statement would be executed very rarely. Because when somebody logs in, we should have at least 1 user in
+                        DB right? But it's possible that someone logs in and then someone deletes the data in users table and that user is still
+                        logged in but we don't have any rows in users table.*/
+                        const newRow = tbody.insertRow();
+                        let newCell = newRow.insertCell();
+                        newCell.setAttribute('colspan', '2');
+                        newCell.innerHTML = 'No data available';
+                    }
+                });
+        });
+    </script>
+{{end}}
