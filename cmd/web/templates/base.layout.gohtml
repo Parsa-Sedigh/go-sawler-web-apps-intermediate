@@ -55,13 +55,19 @@
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="/admin/virtual-terminal">Virtual Terminal</a></li>
-                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <hr class="dropdown-divider"/>
+                            </li>
                             <li><a class="dropdown-item" href="/admin/all-sales">All Sales</a></li>
                             <li><a class="dropdown-item" href="/admin/all-subscriptions">All Subscriptions</a></li>
-                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <hr class="dropdown-divider"/>
+                            </li>
 
                             <li><a class="dropdown-item" href="/admin/all-users">All Users</a></li>
-                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <hr class="dropdown-divider"/>
+                            </li>
 
                             <li><a class="dropdown-item" href="/logout">Logout</a></li>
                         </ul>
@@ -114,12 +120,12 @@
         //
         //     loginLink.classList.remove('d-none');
         // });
-        //
-        // function logout() {
-        //     localStorage.removeItem('token');
-        //     localStorage.removeItem('token_expiry');
-        //     location.href = '/logout';
-        // }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('token_expiry');
+            location.href = '/logout';
+        }
         ///////////////////////
 
         /* checkAuth checks if the user is authenticated by doing a fetch req to the backend if there is a token in localStorage, otherwise
@@ -153,6 +159,39 @@
                     });
             }
         }
+
+        {{if eq .IsAuthenticated 1}}
+        let socket;
+
+            document.addEventListener('DOMContentLoaded', () => {
+                socket = new WebSocket('ws://localhost:4000/ws');
+
+                socket.onopen = () => {
+                    console.log('Successfully connected to websockets');
+                };
+
+                socket.onclose = event => {};
+
+                socket.onerror = error => {};
+
+                socket.onmessage = msg => {
+                    // Anything you get from websockets is wrapped in `data` property
+                    const data = JSON.parse(msg.data);
+
+                    switch (data.action) {
+                        case 'logout': {
+                            if (data.user_id === {{.UserID}}) {
+                                logout();
+                            }
+
+                            break;
+                        }
+
+                        default: {}
+                    }
+                };
+            });
+        {{end}}
     </script>
 
     {{block "js" .}}

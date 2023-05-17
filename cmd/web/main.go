@@ -114,6 +114,8 @@ func main() {
 		Session:       session,
 	}
 
+	go app.ListenToWsChannel()
+
 	// create a web server
 	err = app.serve()
 	if err != nil {

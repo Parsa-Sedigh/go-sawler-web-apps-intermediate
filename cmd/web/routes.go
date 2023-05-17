@@ -11,6 +11,7 @@ func (app *application) routes() http.Handler {
 	mux.Use(SessionLoad)
 
 	mux.Get("/", app.Home)
+	mux.Get("/ws", app.WsEndpoint)
 
 	//mux.Post("/virtual-terminal-payment-succeeded", app.VirtualTerminalPaymentSucceeded)
 	//mux.Get("/virtual-terminal-receipt", app.VirtualTerminalReceipt)

@@ -141,6 +141,33 @@
                 cancelButtonColor: '#d33',
                 confirmButtonText: 'Delete User'
             }).then((result) => {
+                if (result.isConfirmed) {
+                    const requestOptions = {
+                        method: 'post',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    };
+
+                    fetch("{{.API}}/api/admin/all-users/delete/" + id, requestOptions)
+                        .then(response => response.json())
+                        .then(function (data) {
+                            if (data.error) {
+                                Swal.fire(`error: ${data.message}`);
+                            } else {
+                                const jsonData = {
+                                    action: 'deleteUser',
+                                    user_id: parseInt(id, 10)
+                                };
+
+                                socket.send(JSON.stringify(jsonData));
+
+                                location.href = '/admin/all-users';
+                            }
+                        });
+                }
             });
         });
     </script>
