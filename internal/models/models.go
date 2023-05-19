@@ -45,7 +45,7 @@ type Order struct {
 	TransactionID int         `json:"transaction_id"`
 	CustomerID    int         `json:"customer_id"`
 	StatusID      int         `json:"status_id"`
-	Quantiy       int         `json:"quantiy"`
+	Quantity      int         `json:"quantity"`
 	Amount        int         `json:"amount"`
 	CreatedAt     time.Time   `json:"-"`
 	UpdatedAt     time.Time   `json:"-"`
@@ -193,7 +193,7 @@ func (m *DBModel) InsertOrder(order Order) (int, error) {
 		order.WidgetID,
 		order.TransactionID,
 		order.StatusID,
-		order.Quantiy,
+		order.Quantity,
 		order.CustomerID,
 		order.Amount,
 		time.Now(),
@@ -344,7 +344,7 @@ func (m *DBModel) GetAllOrders() ([]*Order, error) {
 			&o.TransactionID,
 			&o.CustomerID,
 			&o.StatusID,
-			&o.Quantiy,
+			&o.Quantity,
 			&o.Amount,
 			&o.CreatedAt,
 			&o.UpdatedAt,
@@ -415,7 +415,7 @@ func (m *DBModel) GetAllOrdersPaginated(pageSize, page int) ([]*Order, int, int,
 			&o.TransactionID,
 			&o.CustomerID,
 			&o.StatusID,
-			&o.Quantiy,
+			&o.Quantity,
 			&o.Amount,
 			&o.CreatedAt,
 			&o.UpdatedAt,
@@ -498,7 +498,7 @@ func (m *DBModel) GetAllSubscriptions() ([]*Order, error) {
 			&o.TransactionID,
 			&o.CustomerID,
 			&o.StatusID,
-			&o.Quantiy,
+			&o.Quantity,
 			&o.Amount,
 			&o.CreatedAt,
 			&o.UpdatedAt,
@@ -567,7 +567,7 @@ func (m *DBModel) GetAllSubscriptionsPaginated(pageSize, page int) ([]*Order, in
 			&o.TransactionID,
 			&o.CustomerID,
 			&o.StatusID,
-			&o.Quantiy,
+			&o.Quantity,
 			&o.Amount,
 			&o.CreatedAt,
 			&o.UpdatedAt,
@@ -640,7 +640,7 @@ func (m *DBModel) GetOrderByID(id int) (Order, error) {
 		&o.TransactionID,
 		&o.CustomerID,
 		&o.StatusID,
-		&o.Quantiy,
+		&o.Quantity,
 		&o.Amount,
 		&o.CreatedAt,
 		&o.UpdatedAt,

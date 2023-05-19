@@ -169,7 +169,7 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 		TransactionID: txnID,
 		CustomerID:    customerID,
 		StatusID:      1,
-		Quantiy:       1, // for now, we only allow people to buy one thing at a time, so we hardcoded this number
+		Quantity:      1, // for now, we only allow people to buy one thing at a time, so we hardcoded this number
 		Amount:        txnData.PaymentAmount,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
